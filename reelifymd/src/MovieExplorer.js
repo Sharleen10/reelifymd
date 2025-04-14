@@ -25,6 +25,7 @@ function MovieExplorer() {
   const [sortBy, setSortBy] = useState("popularity.desc");
   const [countries, setCountries] = useState([]);
   const [years, setYears] = useState([]);
+  const [selectedProvider, setSelectedProvider] = useState(null);
 
   // Define the handleNavigation function before using it
   const handleNavigation = (view) => {
@@ -44,7 +45,7 @@ function MovieExplorer() {
 
   useEffect(() => {
     fetchMovies();
-  }, [viewMode, currentPage, timeWindow, searchTerm, selectedMovie, filterYear, filterCountry, sortBy]);
+  }, [viewMode, currentPage, timeWindow, searchTerm, selectedMovie, filterYear, filterCountry, sortBy, selectedProvider]);
 
   const generateYears = () => {
     const currentYear = new Date().getFullYear();
@@ -126,6 +127,9 @@ function MovieExplorer() {
         break;
       case "genre":
         url = `http://localhost:5000/api/movies/genre/${selectedMovie}?page=${currentPage}`;
+        break;
+      case "provider":
+        url = `http://localhost:5000/api/movies/provider/${selectedProvider.id}?page=${currentPage}`;
         break;
       case "search":
         if (searchTerm.trim()) {
@@ -223,6 +227,14 @@ function MovieExplorer() {
     }
   };
 
+  const handleProviderSelect = (providerId, providerName) => {
+    setSelectedProvider({ id: providerId, name: providerName });
+    setViewMode("provider");
+    setCurrentPage(1);
+    // Switch to movies view to show provider movies
+    setCurrentView("movies");
+  };
+
   const getViewModeTitle = () => {
     switch (viewMode) {
       case "trending": return `Trending ${timeWindow === "day" ? "Today" : "This Week"}`;
@@ -233,6 +245,8 @@ function MovieExplorer() {
       case "genre": 
         const categoryName = categories.find(cat => cat.id === parseInt(selectedMovie))?.name;
         return categoryName ? `${categoryName} Movies` : "Category";
+      case "provider":
+        return selectedProvider ? `${selectedProvider.name} Movies` : "Streaming Movies";
       case "search": return `Search Results: "${searchTerm}"`;
       default: return "Movies";
     }
@@ -242,6 +256,7 @@ function MovieExplorer() {
     setFilterYear("");
     setFilterCountry("");
     setSortBy("popularity.desc");
+    setSelectedProvider(null);
   };
 
   return (
@@ -414,12 +429,13 @@ function MovieExplorer() {
             countries={countries}
             years={years}
             resetFilters={resetFilters}
+            selectedProvider={selectedProvider}
           />
         )}
       </main>
 
       {/* Footer */}
-      <Footer />
+      <Footer onProviderSelect={handleProviderSelect} />
 
       {/* Movie Detail Modal */}
       {showDetail && selectedMovie && (
