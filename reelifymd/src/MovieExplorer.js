@@ -4,10 +4,12 @@ import MovieCard from "./components/MovieCard";
 import MovieDetail from "./components/MovieDetail";
 import Footer from "./components/Footer";
 import MoviePage from "./components/MoviePage";
+import AnimationPage from "./components/AnimationPage";
 import "./styles.css";
 
 function MovieExplorer() {
   const [movies, setMovies] = useState([]);
+  const [animations, setAnimations] = useState([]);
   const [trending, setTrending] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
@@ -26,6 +28,8 @@ function MovieExplorer() {
   const [countries, setCountries] = useState([]);
   const [years, setYears] = useState([]);
   const [selectedProvider, setSelectedProvider] = useState(null);
+  const [animationGenres, setAnimationGenres] = useState([]);
+  const [selectedAnimationGenre, setSelectedAnimationGenre] = useState("");
 
   // Define the handleNavigation function before using it
   const handleNavigation = (view) => {
@@ -33,6 +37,12 @@ function MovieExplorer() {
     if (view === "movies") {
       setViewMode("trending");
       setTimeWindow("day");
+    } else if (view === "animation") {
+      // Reset to initial state for animation view
+      setViewMode("animation_trending");
+      setTimeWindow("day");
+      setCurrentPage(1);
+      fetchAnimations();
     }
   };
 
@@ -41,11 +51,16 @@ function MovieExplorer() {
     fetchTrending();
     generateYears();
     fetchCountries();
+    fetchAnimationGenres();
   }, []);
 
   useEffect(() => {
-    fetchMovies();
-  }, [viewMode, currentPage, timeWindow, searchTerm, selectedMovie, filterYear, filterCountry, sortBy, selectedProvider]);
+    if (currentView === "animation") {
+      fetchAnimations();
+    } else {
+      fetchMovies();
+    }
+  }, [viewMode, currentPage, timeWindow, searchTerm, selectedMovie, filterYear, filterCountry, sortBy, selectedProvider, currentView, selectedAnimationGenre]);
 
   const generateYears = () => {
     const currentYear = new Date().getFullYear();
@@ -72,6 +87,29 @@ function MovieExplorer() {
       { code: "CN", name: "China" }
     ];
     setCountries(countriesList);
+  };
+
+  const fetchAnimationGenres = async () => {
+    try {
+      // You might want to have a specific endpoint for animation genres
+      // For now, we'll use the same genres endpoint
+      const response = await fetch("http://localhost:5000/api/genres");
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        // Filter only animation-related genres
+        // In a real app, you might have a more sophisticated approach
+        const animationGenresList = data.filter(genre => 
+          ["Animation", "Family", "Fantasy"].includes(genre.name)
+        );
+        setAnimationGenres(animationGenresList);
+      } else {
+        console.error("Animation genres data is not an array:", data);
+        setAnimationGenres([]);
+      }
+    } catch (error) {
+      console.error("Error fetching animation genres:", error);
+      setAnimationGenres([]);
+    }
   };
 
   const fetchGenres = async () => {
@@ -101,6 +139,72 @@ function MovieExplorer() {
       console.error("Error fetching trending movies:", error);
       setIsLoading(false);
       setTrending([]);
+    }
+  };
+
+  const fetchAnimations = async () => {
+    let url;
+    setIsLoading(true);
+    
+    // Base URL based on animation view mode
+    switch (viewMode) {
+      case "animation_trending":
+        url = `http://localhost:5000/api/trending/${timeWindow}?with_genres=16`; // 16 is the genre ID for Animation
+        break;
+      case "animation_popular":
+        url = `http://localhost:5000/api/movies?with_genres=16&page=${currentPage}`;
+        break;
+      case "animation_topRated":
+        url = `http://localhost:5000/api/top_rated?with_genres=16&page=${currentPage}`;
+        break;
+      case "animation_upcoming":
+        url = `http://localhost:5000/api/upcoming?with_genres=16&page=${currentPage}`;
+        break;
+      case "animation_genre":
+        url = `http://localhost:5000/api/movies/genre/${selectedAnimationGenre}?page=${currentPage}`;
+        break;
+      case "animation_search":
+        if (searchTerm.trim()) {
+          url = `http://localhost:5000/api/search?q=${searchTerm}&with_genres=16`;
+        } else {
+          setIsLoading(false);
+          return;
+        }
+        break;
+      default:
+        url = `http://localhost:5000/api/movies?with_genres=16&page=${currentPage}`;
+    }
+
+    // Add filter parameters if available
+    let params = new URLSearchParams();
+    
+    if (filterYear) {
+      params.append('year', filterYear);
+    }
+    
+    if (filterCountry) {
+      params.append('region', filterCountry);
+    }
+    
+    if (sortBy) {
+      params.append('sort_by', sortBy);
+    }
+    
+    // Append parameters to URL if any exist
+    if (params.toString()) {
+      url += (url.includes('?') ? '&' : '?') + params.toString();
+    }
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      setAnimations(data.results || []);
+      setTotalPages(data.total_pages || 1);
+      setIsLoading(false);
+    } catch (error) {
+      console.error(`Error fetching ${viewMode} animations:`, error);
+      setIsLoading(false);
+      setAnimations([]);
     }
   };
 
@@ -184,9 +288,12 @@ function MovieExplorer() {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      setViewMode("search");
+      if (currentView === "animation") {
+        setViewMode("animation_search");
+      } else {
+        setViewMode("search");
+      }
       setCurrentPage(1);
-      fetchMovies();
     }
   };
 
@@ -219,6 +326,12 @@ function MovieExplorer() {
     setCurrentPage(1);
   };
 
+  const changeAnimationGenre = (genreId) => {
+    setSelectedAnimationGenre(genreId);
+    setViewMode("animation_genre");
+    setCurrentPage(1);
+  };
+
   const handlePageChange = (direction) => {
     if (direction === "next" && currentPage < totalPages) {
       setCurrentPage(prevPage => prevPage + 1);
@@ -248,6 +361,15 @@ function MovieExplorer() {
       case "provider":
         return selectedProvider ? `${selectedProvider.name} Movies` : "Streaming Movies";
       case "search": return `Search Results: "${searchTerm}"`;
+      // Animation view mode titles
+      case "animation_trending": return `Trending Animation ${timeWindow === "day" ? "Today" : "This Week"}`;
+      case "animation_popular": return "Popular Animations";
+      case "animation_topRated": return "Top Rated Animations";
+      case "animation_upcoming": return "Upcoming Animations";
+      case "animation_genre": 
+        const animGenreName = animationGenres.find(genre => genre.id === parseInt(selectedAnimationGenre))?.name;
+        return animGenreName ? `${animGenreName} Animations` : "Animation Category";
+      case "animation_search": return `Animation Search Results: "${searchTerm}"`;
       default: return "Movies";
     }
   };
@@ -430,6 +552,34 @@ function MovieExplorer() {
             years={years}
             resetFilters={resetFilters}
             selectedProvider={selectedProvider}
+          />
+        )}
+
+        {currentView === "animation" && (
+          <AnimationPage 
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            timeWindow={timeWindow}
+            setTimeWindow={setTimeWindow}
+            animationGenres={animationGenres}
+            changeAnimationGenre={changeAnimationGenre}
+            movies={animations}
+            handleMovieClick={handleMovieClick}
+            handleTrailerRequest={handleTrailerRequest}
+            isLoading={isLoading}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            handlePageChange={handlePageChange}
+            getViewModeTitle={getViewModeTitle}
+            filterYear={filterYear}
+            setFilterYear={setFilterYear}
+            filterCountry={filterCountry}
+            setFilterCountry={setFilterCountry}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            countries={countries}
+            years={years}
+            resetFilters={resetFilters}
           />
         )}
       </main>
