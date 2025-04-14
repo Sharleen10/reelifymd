@@ -1,5 +1,5 @@
 import React from "react";
-import logo from "../assests/Reelify Logo.png"; // Adjust the path as necessary
+import logo from "../assests/Reelify Logo.png";
 
 function Navbar({ onSearch, searchTerm, setSearchTerm, onNavigation, currentView }) {
   // Handle navigation with fallback
@@ -41,12 +41,18 @@ function Navbar({ onSearch, searchTerm, setSearchTerm, onNavigation, currentView
           <a
             href="#movies"
             className={currentView === "movies" ? "active" : ""}
-            onClick={(e) => handleNavigationClick("movies", e) }
+            onClick={(e) => handleNavigationClick("movies", e)}
           >
             Movies
           </a>
           <a href="#tv">TV Shows</a>
-          <a href="#animation">Animation</a>
+          <a
+            href="#animation"
+            className={currentView === "animation" ? "active" : ""}
+            onClick={(e) => handleNavigationClick("animation", e)}
+          >
+            Animation
+          </a>
         </div>
       </div>
     </nav>
