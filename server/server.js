@@ -282,6 +282,75 @@ app.get("/api/movies/:movieId", async (req, res) => {
   }
 });
 
+// NEW ROUTE: Movies by streaming provider
+app.get("/api/movies/provider/:providerId", async (req, res) => {
+  const { providerId } = req.params;
+  const { page = 1, year, region = "US", sort_by } = req.query;
+  
+  try {
+    let url = `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.TMDB_API_KEY}&with_watch_providers=${providerId}&watch_region=${region}&page=${page}`;
+    
+    if (year) {
+      url += `&primary_release_year=${year}`;
+    }
+    
+    if (sort_by) {
+      url += `&sort_by=${sort_by}`;
+    }
+    
+    console.log(`Fetching movies by provider from: ${url}`);
+    const response = await axios.get(url);
+    res.json(response.data);
+  } catch (err) {
+    console.error("Error fetching movies by provider:", err.message);
+    if (err.response) {
+      console.error("Response status:", err.response.status);
+      console.error("Response data:", err.response.data);
+    }
+    res.status(500).json({ message: "Error fetching movies by provider", error: err.message });
+  }
+});
+
+// NEW ROUTE: Get available countries for filtering
+app.get("/api/countries", async (req, res) => {
+  try {
+    // TMDb doesn't have a direct API for this, so we'll use the configuration API
+    // and add main film countries manually
+    const url = `https://api.themoviedb.org/3/configuration/countries?api_key=${process.env.TMDB_API_KEY}`;
+    console.log(`Fetching countries from: ${url}`);
+    const response = await axios.get(url);
+    
+    // Filter to include only major film-producing countries
+    res.json(response.data);
+  } catch (err) {
+    console.error("Error fetching countries:", err.message);
+    if (err.response) {
+      console.error("Response status:", err.response.status);
+      console.error("Response data:", err.response.data);
+    }
+    res.status(500).json({ message: "Error fetching countries", error: err.message });
+  }
+});
+
+// NEW ROUTE: Get available streaming providers
+app.get("/api/providers", async (req, res) => {
+  const { region = "US" } = req.query;
+  
+  try {
+    const url = `https://api.themoviedb.org/3/watch/providers/movie?api_key=${process.env.TMDB_API_KEY}&watch_region=${region}`;
+    console.log(`Fetching providers from: ${url}`);
+    const response = await axios.get(url);
+    res.json(response.data.results || []);
+  } catch (err) {
+    console.error("Error fetching providers:", err.message);
+    if (err.response) {
+      console.error("Response status:", err.response.status);
+      console.error("Response data:", err.response.data);
+    }
+    res.status(500).json({ message: "Error fetching providers", error: err.message });
+  }
+});
+
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
