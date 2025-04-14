@@ -21,7 +21,7 @@ app.use((req, res, next) => {
 
 // Helper function to build URL with filters
 const buildTMDBUrl = (baseUrl, req) => {
-  const { page = 1, year, region, sort_by } = req.query;
+  const { page = 1, year, region, sort_by, with_genres } = req.query;
   let url = `${baseUrl}?api_key=${process.env.TMDB_API_KEY}&page=${page}`;
   
   if (year) {
@@ -34,6 +34,10 @@ const buildTMDBUrl = (baseUrl, req) => {
   
   if (sort_by) {
     url += `&sort_by=${sort_by}`;
+  }
+  
+  if (with_genres) {
+    url += `&with_genres=${with_genres}`;
   }
   
   return url;
@@ -76,7 +80,7 @@ app.get("/api/now_playing", async (req, res) => {
 // Route: Search for movies
 app.get("/api/search", async (req, res) => {
   const query = req.query.q;
-  const { page = 1, year, region } = req.query;
+  const { page = 1, year, region, with_genres } = req.query;
   
   try {
     let url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${query}&page=${page}`;
@@ -87,6 +91,10 @@ app.get("/api/search", async (req, res) => {
     
     if (region) {
       url += `&region=${region}`;
+    }
+    
+    if (with_genres) {
+      url += `&with_genres=${with_genres}`;
     }
     
     console.log(`Searching from: ${url}`);
@@ -225,11 +233,22 @@ app.get("/api/trending/:timeWindow", async (req, res) => {
     return res.status(400).json({ message: "Time window must be 'day' or 'week'" });
   }
   
-  const { page = 1 } = req.query;
+  const { page = 1, with_genres } = req.query;
   
   try {
-    // Note: TMDB trending endpoint doesn't support most filters, but we'll add page
-    const url = `https://api.themoviedb.org/3/trending/movie/${timeWindow}?api_key=${process.env.TMDB_API_KEY}&page=${page}`;
+    // Note: TMDB trending endpoint doesn't support most filters directly,
+    // but we can use the discover endpoint with additional parameters 
+    // to get similar functionality
+    let url;
+    
+    if (with_genres) {
+      // For filtered trending with genre, use discover with trending sorting
+      url = `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.TMDB_API_KEY}&page=${page}&with_genres=${with_genres}&sort_by=popularity.desc&time_window=${timeWindow}`;
+    } else {
+      // Standard trending endpoint
+      url = `https://api.themoviedb.org/3/trending/movie/${timeWindow}?api_key=${process.env.TMDB_API_KEY}&page=${page}`;
+    }
+    
     console.log(`Fetching trending from: ${url}`);
     const response = await axios.get(url);
     res.json(response.data);
@@ -282,10 +301,10 @@ app.get("/api/movies/:movieId", async (req, res) => {
   }
 });
 
-// NEW ROUTE: Movies by streaming provider
+// Route: Movies by streaming provider
 app.get("/api/movies/provider/:providerId", async (req, res) => {
   const { providerId } = req.params;
-  const { page = 1, year, region = "US", sort_by } = req.query;
+  const { page = 1, year, region = "US", sort_by, with_genres } = req.query;
   
   try {
     let url = `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.TMDB_API_KEY}&with_watch_providers=${providerId}&watch_region=${region}&page=${page}`;
@@ -296,6 +315,10 @@ app.get("/api/movies/provider/:providerId", async (req, res) => {
     
     if (sort_by) {
       url += `&sort_by=${sort_by}`;
+    }
+    
+    if (with_genres) {
+      url += `&with_genres=${with_genres}`;
     }
     
     console.log(`Fetching movies by provider from: ${url}`);
@@ -311,16 +334,14 @@ app.get("/api/movies/provider/:providerId", async (req, res) => {
   }
 });
 
-// NEW ROUTE: Get available countries for filtering
+// Route: Get available countries for filtering
 app.get("/api/countries", async (req, res) => {
   try {
-    // TMDb doesn't have a direct API for this, so we'll use the configuration API
-    // and add main film countries manually
     const url = `https://api.themoviedb.org/3/configuration/countries?api_key=${process.env.TMDB_API_KEY}`;
     console.log(`Fetching countries from: ${url}`);
     const response = await axios.get(url);
     
-    // Filter to include only major film-producing countries
+    // Return all countries from the TMDB API
     res.json(response.data);
   } catch (err) {
     console.error("Error fetching countries:", err.message);
@@ -332,7 +353,7 @@ app.get("/api/countries", async (req, res) => {
   }
 });
 
-// NEW ROUTE: Get available streaming providers
+// Route: Get available streaming providers
 app.get("/api/providers", async (req, res) => {
   const { region = "US" } = req.query;
   
@@ -348,6 +369,64 @@ app.get("/api/providers", async (req, res) => {
       console.error("Response data:", err.response.data);
     }
     res.status(500).json({ message: "Error fetching providers", error: err.message });
+  }
+});
+
+// New route specifically for animation content
+app.get("/api/animation", async (req, res) => {
+  // Animation genre ID is 16 in TMDB
+  req.query.with_genres = "16";
+  
+  try {
+    const url = buildTMDBUrl("https://api.themoviedb.org/3/discover/movie", req);
+    console.log(`Fetching animation movies from: ${url}`);
+    const response = await axios.get(url);
+    res.json(response.data);
+  } catch (err) {
+    console.error("Error fetching animation movies:", err.message);
+    if (err.response) {
+      console.error("Response status:", err.response.status);
+      console.error("Response data:", err.response.data);
+    }
+    res.status(500).json({ message: "Error fetching animation movies", error: err.message });
+  }
+});
+
+// New route for animation trending content
+app.get("/api/animation/trending/:timeWindow", async (req, res) => {
+  const { timeWindow } = req.params;
+  const validTimeWindows = ['day', 'week'];
+  
+  if (!validTimeWindows.includes(timeWindow)) {
+    return res.status(400).json({ message: "Time window must be 'day' or 'week'" });
+  }
+  
+  // Add animation genre filter (16 is the animation genre ID)
+  req.query.with_genres = "16";
+  
+  try {
+    // For animation trending, we'll use discover with trending sorting and animation genre filter
+    const { page = 1, year, region, sort_by = "popularity.desc" } = req.query;
+    let url = `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.TMDB_API_KEY}&with_genres=16&page=${page}&sort_by=${sort_by}`;
+    
+    if (year) {
+      url += `&primary_release_year=${year}`;
+    }
+    
+    if (region) {
+      url += `&region=${region}`;
+    }
+    
+    console.log(`Fetching animation trending from: ${url}`);
+    const response = await axios.get(url);
+    res.json(response.data);
+  } catch (err) {
+    console.error("Error fetching animation trending:", err.message);
+    if (err.response) {
+      console.error("Response status:", err.response.status);
+      console.error("Response data:", err.response.data);
+    }
+    res.status(500).json({ message: "Error fetching animation trending", error: err.message });
   }
 });
 
