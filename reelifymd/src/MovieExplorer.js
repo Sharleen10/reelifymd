@@ -1,3 +1,4 @@
+//MovieExplorer
 import React, { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import MovieCard from "./components/MovieCard";
@@ -5,16 +6,20 @@ import MovieDetail from "./components/MovieDetail";
 import Footer from "./components/Footer";
 import MoviePage from "./components/MoviePage";
 import AnimationPage from "./components/AnimationPage";
+import TVShowsPage from "./components/TVShowsPage";
 import "./styles.css";
 
 function MovieExplorer() {
   const [movies, setMovies] = useState([]);
   const [animations, setAnimations] = useState([]);
+  const [tvShows, setTvShows] = useState([]);
   const [trending, setTrending] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [selectedTVShow, setSelectedTVShow] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [trailerKey, setTrailerKey] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [tvCategories, setTvCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("trending");
   const [timeWindow, setTimeWindow] = useState("day");
@@ -37,6 +42,11 @@ function MovieExplorer() {
     if (view === "movies") {
       setViewMode("trending");
       setTimeWindow("day");
+    } else if (view === "tvshows") {
+      setViewMode("tv_trending");
+      setTimeWindow("day");
+      setCurrentPage(1);
+      fetchTVShows();
     } else if (view === "animation") {
       // Reset to initial state for animation view
       setViewMode("animation_trending");
@@ -48,6 +58,7 @@ function MovieExplorer() {
 
   useEffect(() => {
     fetchGenres();
+    fetchTVGenres();
     fetchTrending();
     generateYears();
     fetchCountries();
@@ -57,10 +68,12 @@ function MovieExplorer() {
   useEffect(() => {
     if (currentView === "animation") {
       fetchAnimations();
+    } else if (currentView === "tvshows") {
+      fetchTVShows();
     } else {
       fetchMovies();
     }
-  }, [viewMode, currentPage, timeWindow, searchTerm, selectedMovie, filterYear, filterCountry, sortBy, selectedProvider, currentView, selectedAnimationGenre]);
+  }, [viewMode, currentPage, timeWindow, searchTerm, selectedMovie, selectedTVShow, filterYear, filterCountry, sortBy, selectedProvider, currentView, selectedAnimationGenre]);
 
   const generateYears = () => {
     const currentYear = new Date().getFullYear();
@@ -125,6 +138,22 @@ function MovieExplorer() {
     } catch (error) {
       console.error("Error fetching genres:", error);
       setCategories([]);
+    }
+  };
+
+  const fetchTVGenres = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/tv/genres");
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setTvCategories(data);
+      } else {
+        console.error("TV Genres data is not an array:", data);
+        setTvCategories([]);
+      }
+    } catch (error) {
+      console.error("Error fetching TV genres:", error);
+      setTvCategories([]);
     }
   };
 
@@ -208,6 +237,78 @@ function MovieExplorer() {
     }
   };
 
+  const fetchTVShows = async () => {
+    let url;
+    setIsLoading(true);
+    
+    // Base URL based on view mode for TV shows
+    switch (viewMode) {
+      case "tv_trending":
+        url = `http://localhost:5000/api/tv/trending/${timeWindow}`;
+        break;
+      case "tv_popular":
+        url = `http://localhost:5000/api/tv/popular?page=${currentPage}`;
+        break;
+      case "tv_topRated":
+        url = `http://localhost:5000/api/tv/top_rated?page=${currentPage}`;
+        break;
+      case "tv_onAir":
+        url = `http://localhost:5000/api/tv/on_the_air?page=${currentPage}`;
+        break;
+      case "tv_airing":
+        url = `http://localhost:5000/api/tv/airing_today?page=${currentPage}`;
+        break;
+      case "tv_genre":
+        url = `http://localhost:5000/api/tv/genre/${selectedTVShow}?page=${currentPage}`;
+        break;
+      case "tv_provider":
+        url = `http://localhost:5000/api/tv/provider/${selectedProvider.id}?page=${currentPage}`;
+        break;
+      case "tv_search":
+        if (searchTerm.trim()) {
+          url = `http://localhost:5000/api/tv/search?q=${searchTerm}`;
+        } else {
+          setIsLoading(false);
+          return;
+        }
+        break;
+      default:
+        url = `http://localhost:5000/api/tv/popular?page=${currentPage}`;
+    }
+  
+    // Add filter parameters if available
+    let params = new URLSearchParams();
+    
+    if (filterYear) {
+      params.append('first_air_date_year', filterYear);
+    }
+    
+    if (filterCountry) {
+      params.append('region', filterCountry);
+    }
+    
+    if (sortBy) {
+      params.append('sort_by', sortBy);
+    }
+    
+    // Append parameters to URL if any exist
+    if (params.toString()) {
+      url += (url.includes('?') ? '&' : '?') + params.toString();
+    }
+  
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      setTvShows(data.results || []); // Ensure we set an empty array if results is undefined
+      setTotalPages(data.total_pages || 1);
+      setIsLoading(false);
+    } catch (error) {
+      console.error(`Error fetching ${viewMode} TV shows:`, error);
+      setIsLoading(false);
+      setTvShows([]); // Set empty array on error
+    }
+  };
+
   const fetchMovies = async () => {
     let url;
     setIsLoading(true);
@@ -285,11 +386,18 @@ function MovieExplorer() {
     setShowDetail(true);
   };
 
+  const handleTVShowClick = (tvShow) => {
+    setSelectedMovie(tvShow);
+    setShowDetail(true);
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
       if (currentView === "animation") {
         setViewMode("animation_search");
+      } else if (currentView === "tvshows") {
+        setViewMode("tv_search");
       } else {
         setViewMode("search");
       }
@@ -299,13 +407,20 @@ function MovieExplorer() {
 
   const handleTrailerRequest = async (movieId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/movies/${movieId}/trailer`);
+      let endpoint;
+      if (currentView === "tvshows") {
+        endpoint = `http://localhost:5000/api/tv/${movieId}/trailer`;
+      } else {
+        endpoint = `http://localhost:5000/api/movies/${movieId}/trailer`;
+      }
+      
+      const response = await fetch(endpoint);
       const data = await response.json();
       if (data.key) {
         setTrailerKey(data.key);
         return data.key;
       } else {
-        alert("No trailer available for this movie");
+        alert("No trailer available");
         return null;
       }
     } catch (error) {
@@ -317,12 +432,19 @@ function MovieExplorer() {
   const closeDetail = () => {
     setShowDetail(false);
     setSelectedMovie(null);
+    setSelectedTVShow(null);
     setTrailerKey(null);
   };
 
   const changeCategory = (categoryId) => {
     setSelectedMovie(categoryId);
     setViewMode("genre");
+    setCurrentPage(1);
+  };
+
+  const changeTVCategory = (categoryId) => {
+    setSelectedTVShow(categoryId);
+    setViewMode("tv_genre");
     setCurrentPage(1);
   };
 
@@ -342,10 +464,16 @@ function MovieExplorer() {
 
   const handleProviderSelect = (providerId, providerName) => {
     setSelectedProvider({ id: providerId, name: providerName });
-    setViewMode("provider");
+    
+    if (currentView === "tvshows") {
+      setViewMode("tv_provider");
+    } else {
+      setViewMode("provider");
+      // Switch to movies view to show provider movies
+      setCurrentView("movies");
+    }
+    
     setCurrentPage(1);
-    // Switch to movies view to show provider movies
-    setCurrentView("movies");
   };
 
   const getViewModeTitle = () => {
@@ -361,6 +489,20 @@ function MovieExplorer() {
       case "provider":
         return selectedProvider ? `${selectedProvider.name} Movies` : "Streaming Movies";
       case "search": return `Search Results: "${searchTerm}"`;
+      
+      // TV shows view mode titles
+      case "tv_trending": return `Trending TV Shows ${timeWindow === "day" ? "Today" : "This Week"}`;
+      case "tv_popular": return "Popular TV Shows";
+      case "tv_topRated": return "Top Rated TV Shows";
+      case "tv_onAir": return "Currently On Air";
+      case "tv_airing": return "Airing Today";
+      case "tv_genre": 
+        const tvCategoryName = tvCategories.find(cat => cat.id === parseInt(selectedTVShow))?.name;
+        return tvCategoryName ? `${tvCategoryName} TV Shows` : "TV Category";
+      case "tv_provider":
+        return selectedProvider ? `${selectedProvider.name} TV Shows` : "Streaming TV Shows";
+      case "tv_search": return `TV Search Results: "${searchTerm}"`;
+      
       // Animation view mode titles
       case "animation_trending": return `Trending Animation ${timeWindow === "day" ? "Today" : "This Week"}`;
       case "animation_popular": return "Popular Animations";
@@ -555,6 +697,35 @@ function MovieExplorer() {
           />
         )}
 
+{currentView === "tvshows" && (
+  <TVShowsPage 
+    viewMode={viewMode}
+    setViewMode={setViewMode}
+    timeWindow={timeWindow}
+    setTimeWindow={setTimeWindow}
+    categories={tvCategories}
+    changeCategory={changeTVCategory}
+    shows={tvShows} // Make sure this is properly set
+    handleShowClick={handleTVShowClick}
+    handleTrailerRequest={handleTrailerRequest}
+    isLoading={isLoading}
+    currentPage={currentPage}
+    totalPages={totalPages}
+    handlePageChange={handlePageChange}
+    getViewModeTitle={getViewModeTitle}
+    filterYear={filterYear}
+    setFilterYear={setFilterYear}
+    filterCountry={filterCountry}
+    setFilterCountry={setFilterCountry}
+    sortBy={sortBy}
+    setSortBy={setSortBy}
+    countries={countries}
+    years={years}
+    resetFilters={resetFilters}
+    selectedProvider={selectedProvider}
+  />
+)}
+
         {currentView === "animation" && (
           <AnimationPage 
             viewMode={viewMode}
@@ -594,6 +765,7 @@ function MovieExplorer() {
           trailerKey={trailerKey}
           onClose={closeDetail}
           onPlayTrailer={() => handleTrailerRequest(selectedMovie.id)}
+          isTV={currentView === "tvshows"}
         />
       )}
     </div>
