@@ -1,3 +1,4 @@
+//Navbar.js
 import React from "react";
 import logo from "../assests/Reelify Logo.png";
 
@@ -29,7 +30,7 @@ function Navbar({ onSearch, searchTerm, setSearchTerm, onNavigation, currentView
           <form onSubmit={onSearch}>
             <input
               type="text"
-              placeholder="Search for movies..."
+              placeholder={`Search for ${currentView === "tvshows" ? "TV shows" : currentView === "animation" ? "animations" : "movies"}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -45,7 +46,13 @@ function Navbar({ onSearch, searchTerm, setSearchTerm, onNavigation, currentView
           >
             Movies
           </a>
-          <a href="#tv">TV Shows</a>
+          <a
+            href="#tvshows"
+            className={currentView === "tvshows" ? "active" : ""}
+            onClick={(e) => handleNavigationClick("tvshows", e)}
+          >
+            TV Shows
+          </a>
           <a
             href="#animation"
             className={currentView === "animation" ? "active" : ""}
