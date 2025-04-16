@@ -104,13 +104,13 @@ function MovieExplorer() {
 
   const fetchAnimationGenres = async () => {
     try {
-      // You might want to have a specific endpoint for animation genres
+  
       // For now, we'll use the same genres endpoint
       const response = await fetch("http://localhost:5000/api/genres");
       const data = await response.json();
       if (Array.isArray(data)) {
         // Filter only animation-related genres
-        // In a real app, you might have a more sophisticated approach
+  
         const animationGenresList = data.filter(genre => 
           ["Animation", "Family", "Fantasy"].includes(genre.name)
         );
