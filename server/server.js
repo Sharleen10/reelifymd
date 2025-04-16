@@ -16,6 +16,14 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+app.use(cors({
+  origin: [
+    'https://reelify-frontend.onrender.com',
+    'http://localhost:3000' // for local development
+  ],
+  credentials: true
+}));
+
 // API Routes
 // Movies Routes
 app.get('/api/movies', async (req, res, next) => {
