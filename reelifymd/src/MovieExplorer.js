@@ -180,30 +180,30 @@ function MovieExplorer() {
     // Base URL based on animation view mode
     switch (viewMode) {
       case "animation_trending":
-        url = `http://localhost:5000/api/trending/${timeWindow}?with_genres=16`; // 16 is the genre ID for Animation
+        url = `${API_BASE_URL}/api/trending/${timeWindow}?with_genres=16`; // 16 is the genre ID for Animation
         break;
       case "animation_popular":
-        url = `http://localhost:5000/api/movies?with_genres=16&page=${currentPage}`;
+        url = `${API_BASE_URL}/api/movies?with_genres=16&page=${currentPage}`;
         break;
       case "animation_topRated":
-        url = `http://localhost:5000/api/top_rated?with_genres=16&page=${currentPage}`;
+        url = `${API_BASE_URL}/api/top_rated?with_genres=16&page=${currentPage}`;
         break;
       case "animation_upcoming":
-        url = `http://localhost:5000/api/upcoming?with_genres=16&page=${currentPage}`;
+        url = `${API_BASE_URL}/api/upcoming?with_genres=16&page=${currentPage}`;
         break;
       case "animation_genre":
-        url = `http://localhost:5000/api/movies/genre/${selectedAnimationGenre}?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/movies/genre/${selectedAnimationGenre}?page=${currentPage}`;
         break;
       case "animation_search":
         if (searchTerm.trim()) {
-          url = `http://localhost:5000/api/search?q=${searchTerm}&with_genres=16`;
+          url = `${API_BASE_URL}/api/search?q=${searchTerm}&with_genres=16`;
         } else {
           setIsLoading(false);
           return;
         }
         break;
       default:
-        url = `http://localhost:5000/api/movies?with_genres=16&page=${currentPage}`;
+        url = `${API_BASE_URL}/api/movies?with_genres=16&page=${currentPage}`;
     }
 
     // Add filter parameters if available
@@ -246,36 +246,36 @@ function MovieExplorer() {
     // Base URL based on view mode for TV shows
     switch (viewMode) {
       case "tv_trending":
-        url = `http://localhost:5000/api/tv/trending/${timeWindow}`;
+        url = `${API_BASE_URL}/api/tv/trending/${timeWindow}`;
         break;
       case "tv_popular":
-        url = `http://localhost:5000/api/tv/popular?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/tv/popular?page=${currentPage}`;
         break;
       case "tv_topRated":
-        url = `http://localhost:5000/api/tv/top_rated?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/tv/top_rated?page=${currentPage}`;
         break;
       case "tv_onAir":
-        url = `http://localhost:5000/api/tv/on_the_air?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/tv/on_the_air?page=${currentPage}`;
         break;
       case "tv_airing":
-        url = `http://localhost:5000/api/tv/airing_today?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/tv/airing_today?page=${currentPage}`;
         break;
       case "tv_genre":
-        url = `http://localhost:5000/api/tv/genre/${selectedTVShow}?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/tv/genre/${selectedTVShow}?page=${currentPage}`;
         break;
       case "tv_provider":
-        url = `http://localhost:5000/api/tv/provider/${selectedProvider.id}?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/tv/provider/${selectedProvider.id}?page=${currentPage}`;
         break;
       case "tv_search":
         if (searchTerm.trim()) {
-          url = `http://localhost:5000/api/tv/search?q=${searchTerm}`;
+          url = `${API_BASE_URL}/api/tv/search?q=${searchTerm}`;
         } else {
           setIsLoading(false);
           return;
         }
         break;
       default:
-        url = `http://localhost:5000/api/tv/popular?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/tv/popular?page=${currentPage}`;
     }
   
     // Add filter parameters if available
@@ -318,36 +318,36 @@ function MovieExplorer() {
     // Base URL based on view mode
     switch (viewMode) {
       case "trending":
-        url = `http://localhost:5000/api/trending/${timeWindow}`;
+        url = `${API_BASE_URL}/api/trending/${timeWindow}`;
         break;
       case "nowPlaying":
-        url = `http://localhost:5000/api/now_playing?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/now_playing?page=${currentPage}`;
         break;
       case "popular":
-        url = `http://localhost:5000/api/movies?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/movies?page=${currentPage}`;
         break;
       case "topRated":
-        url = `http://localhost:5000/api/top_rated?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/top_rated?page=${currentPage}`;
         break;
       case "upcoming":
-        url = `http://localhost:5000/api/upcoming?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/upcoming?page=${currentPage}`;
         break;
       case "genre":
-        url = `http://localhost:5000/api/movies/genre/${selectedMovie}?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/movies/genre/${selectedMovie}?page=${currentPage}`;
         break;
       case "provider":
-        url = `http://localhost:5000/api/movies/provider/${selectedProvider.id}?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/movies/provider/${selectedProvider.id}?page=${currentPage}`;
         break;
       case "search":
         if (searchTerm.trim()) {
-          url = `http://localhost:5000/api/search?q=${searchTerm}`;
+          url = `${API_BASE_URL}/api/search?q=${searchTerm}`;
         } else {
           setIsLoading(false);
           return;
         }
         break;
       default:
-        url = `http://localhost:5000/api/movies?page=${currentPage}`;
+        url = `${API_BASE_URL}/api/movies?page=${currentPage}`;
     }
 
     // Add filter parameters if available
@@ -411,9 +411,9 @@ function MovieExplorer() {
     try {
       let endpoint;
       if (currentView === "tvshows") {
-        endpoint = `http://localhost:5000/api/tv/${movieId}/trailer`;
+        endpoint = `${API_BASE_URL}/api/tv/${movieId}/trailer`;
       } else {
-        endpoint = `http://localhost:5000/api/movies/${movieId}/trailer`;
+        endpoint = `${API_BASE_URL}/api/movies/${movieId}/trailer`;
       }
       
       const response = await fetch(endpoint);
