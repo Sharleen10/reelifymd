@@ -9,6 +9,8 @@ import AnimationPage from "./components/AnimationPage";
 import TVShowsPage from "./components/TVShowsPage";
 import "./styles.css";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 function MovieExplorer() {
   const [movies, setMovies] = useState([]);
   const [animations, setAnimations] = useState([]);
@@ -106,7 +108,7 @@ function MovieExplorer() {
     try {
   
       // For now, we'll use the same genres endpoint
-      const response = await fetch("http://localhost:5000/api/genres");
+      const response = await fetch(`${API_BASE_URL}/api/genres`);
       const data = await response.json();
       if (Array.isArray(data)) {
         // Filter only animation-related genres
@@ -127,7 +129,7 @@ function MovieExplorer() {
 
   const fetchGenres = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/genres");
+      const response = await fetch(`${API_BASE_URL}/api/tv/genres`);
       const data = await response.json();
       if (Array.isArray(data)) {
         setCategories(data);
@@ -143,7 +145,7 @@ function MovieExplorer() {
 
   const fetchTVGenres = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/tv/genres");
+      const response = await fetch(`${API_BASE_URL}/api/tv/genres`);
       const data = await response.json();
       if (Array.isArray(data)) {
         setTvCategories(data);
@@ -160,7 +162,7 @@ function MovieExplorer() {
   const fetchTrending = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`http://localhost:5000/api/trending/day`);
+      const response = await fetch(`${API_BASE_URL}/api/trending/day`);
       const data = await response.json();
       setTrending(data.results?.slice(0, 6) || []);
       setIsLoading(false);
