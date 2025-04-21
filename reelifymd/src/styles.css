@@ -730,7 +730,6 @@ main {
   border-radius: 10px;
   margin-bottom: 3rem;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  border: 1px solid #3498db;
 }
 
 .movie-filters {
@@ -741,38 +740,21 @@ main {
   margin-bottom: 2rem;
 }
 
-.movie-view-modes button {
-  background-color: #333;
-  color: white;
-  padding: 0.7rem 1.2rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.movie-view-modes button:hover {
-  background-color: #3498db;
-  transform: translateY(-2px);
-}
-
-.movie-view-modes button.active {
-  background-color: #3498db;
-  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+.movie-view-modes {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
 }
 
 .advanced-filters {
   background-color: #1a1a1a;
   padding: 1.5rem;
   border-radius: 8px;
-  border-left: 4px solid #3498db;
 }
 
 .advanced-filters h3 {
   margin-bottom: 1.5rem;
-  color: #3498db;
+  color: #ddd;
   font-size: 1.3rem;
 }
 
@@ -811,7 +793,23 @@ main {
 }
 
 .filter-group select:focus {
-  box-shadow: 0 0 0 2px #3498db;
+  box-shadow: 0 0 0 2px #e50914;
+}
+
+.reset-filters {
+  background-color: transparent;
+  color: #aaa;
+  padding: 0.5rem 1rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.reset-filters:hover {
+  color: white;
+  border-color: #e50914;
 }
 
 .movie-page-grid {
@@ -1185,15 +1183,14 @@ main {
 /* TV Shows Page Specific Styles */
 .tv-shows-page {
   animation: fadeIn 0.5s ease;
-  padding: 2rem 1rem;
 }
 
 .tv-shows-page-header {
   text-align: center;
   margin-bottom: 3rem;
   padding: 3rem 0;
-  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)),
-    url('https://image.tmdb.org/t/p/original/uDgy6hyPd82kOHh6I95FLtLnj6p.jpg') center/cover;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), 
+              url('https://image.tmdb.org/t/p/original/uDgy6hyPd82kOHh6I95FLtLnj6p.jpg') center/cover;
   border-radius: 10px;
   position: relative;
   overflow: hidden;
@@ -1224,6 +1221,7 @@ main {
   border-radius: 10px;
   margin-bottom: 3rem;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3498db;
 }
 
 .tv-shows-filters {
@@ -1234,13 +1232,7 @@ main {
   margin-bottom: 2rem;
 }
 
-.view-modes.tv-view-modes {
-  display: flex;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-}
-
-.view-modes.tv-view-modes button {
+.tv-view-modes button {
   background-color: #333;
   color: white;
   padding: 0.7rem 1.2rem;
@@ -1252,16 +1244,196 @@ main {
   font-weight: 500;
 }
 
-.view-modes.tv-view-modes button:hover {
-  background-color: #555;
+.tv-view-modes button:hover {
+  background-color: #3498db;
   transform: translateY(-2px);
 }
 
-.view-modes.tv-view-modes button.active {
-  background-color: #e50914;
-  box-shadow: 0 4px 10px rgba(229, 9, 20, 0.3);
+.tv-view-modes button.active {
+  background-color: #3498db;
+  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
 }
 
+.tv-shows-advanced-filters {
+  background-color: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.tv-shows-advanced-filters h3 {
+  margin-bottom: 1.5rem;
+  color: #3498db;
+  font-size: 1.3rem;
+}
+
+.tv-shows-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2rem;
+}
+
+.tv-shows-grid .tv-show-card {
+  border: 1px solid transparent;
+  transition: all 0.4s ease;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* TV Show Card Hover Effect - Exact Match to Animation Page */
+.tv-shows-grid .movie-card {
+  position: relative;
+  border: 1px solid transparent;
+  transition: all 0.4s ease;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tv-shows-grid .movie-card:hover {
+  border-color: #3498db;
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(52, 152, 219, 0.2);
+}
+
+/* Border Rotation Animation */
+.tv-shows-grid .movie-card::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  background: linear-gradient(45deg, #3498db, transparent, #3498db);
+  z-index: -1;
+  border-radius: 15px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.tv-shows-grid .movie-card:hover::before {
+  opacity: 0.6;
+  animation: borderRotate 2s linear infinite;
+}
+
+@keyframes borderRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.tv-shows-section h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  padding-left: 1rem;
+  border-left: 5px solid #3498db;
+  text-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+}
+
+/* Responsive Design for TV Shows Page */
+@media (max-width: 768px) {
+  .tv-shows-page-header {
+    padding: 2rem 0;
+  }
+  
+  .tv-shows-page-header h1 {
+    font-size: 2.5rem;
+  }
+  
+  .tv-shows-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .tv-shows-filters-container {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .tv-shows-page-header h1 {
+    font-size: 2rem;
+  }
+  
+  .tv-shows-page-header p {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+  
+  .tv-shows-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .tv-shows-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .tv-view-modes {
+    width: 100%;
+    overflow-x: auto;
+    display: flex;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+  }
+  
+  .tv-view-modes::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .tv-view-modes button {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+/* Animation Effects */
+.tv-shows-grid .tv-show-card {
+  position: relative;
+}
+
+.tv-shows-grid .tv-show-card::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  background: linear-gradient(45deg, #3498db, transparent, #3498db);
+  z-index: -1;
+  border-radius: 15px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.tv-shows-grid .tv-show-card:hover::before {
+  opacity: 0.6;
+  animation: borderRotate 2s linear infinite;
+}
+
+@keyframes borderRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Special button effect for TV shows page */
+.tv-shows-filters-container .reset-filters {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.tv-shows-filters-container .reset-filters:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.4);
+}
 .time-filter {
   display: flex;
   gap: 0.8rem;
