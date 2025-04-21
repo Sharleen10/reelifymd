@@ -1,6 +1,6 @@
 //Navbar.js
 import React from "react";
-import logo from "../assests/Reelify Logo.png";
+
 
 function Navbar({ onSearch, searchTerm, setSearchTerm, onNavigation, currentView }) {
   // Handle navigation with fallback
@@ -22,7 +22,7 @@ function Navbar({ onSearch, searchTerm, setSearchTerm, onNavigation, currentView
           onClick={(e) => handleNavigationClick("home", e)}
           style={{ cursor: "pointer" }}
         >
-          <img src={logo} alt="Reelify" />
+          
           <span>Reelify</span>
         </div>
         
