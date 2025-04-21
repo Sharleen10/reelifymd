@@ -728,7 +728,7 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%; /* Changed from 6px to 50% for circular shape */
+    border-radius: 50%; 
     transition: all 0.3s ease;
     font-weight: bold;
     color: #ddd;
@@ -1047,7 +1047,7 @@ main {
   margin-bottom: 3rem;
   padding: 3rem 0;
   background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), 
-              url('https://image.tmdb.org/t/p/original/6MKr3KgOLmzOP6MSuZERO41Lpkt.jpg') center/cover;
+              url('https://image.tmdb.org/t/p/original/uAjMQlbPkVHmUahhCouANlHSDW2.jpg') center/cover;
   border-radius: 10px;
   position: relative;
   overflow: hidden;
@@ -1265,7 +1265,7 @@ main {
   margin-bottom: 3rem;
   padding: 3rem 0;
   background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)),
-    url('https://image.tmdb.org/t/p/original/your-tvshows-header-image.jpg') center/cover;
+    url('https://image.tmdb.org/t/p/original/uDgy6hyPd82kOHh6I95FLtLnj6p.jpg') center/cover;
   border-radius: 10px;
   position: relative;
   overflow: hidden;
