@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import MovieCard from "./components/MovieCard";
 import MovieDetail from "./components/MovieDetail";
-import Footer from "./components/Footer";
+
 import MoviePage from "./components/MoviePage";
 import AnimationPage from "./components/AnimationPage";
 import TVShowsPage from "./components/TVShowsPage";
@@ -543,16 +543,26 @@ function MovieExplorer() {
               <section className="trending-preview">
                 <h2>Featured & Trending</h2>
                 <div className="trending-content">
-                  {trending.length > 0 && trending[0] && (
+                {trending.length > 0 && trending[0] && (
                     <div className="featured-movie" onClick={() => handleMovieClick(trending[0])}>
                       <div className="featured-image" style={{ backgroundImage: `url(https://image.tmdb.org/t/p/w780${trending[0].backdrop_path})` }}>
                         <div className="featured-info">
                           <h3>{trending[0].title}</h3>
                           <p>{trending[0].overview?.substring(0, 150)}...</p>
-                          <button onClick={(e) => {
-                            e.stopPropagation();
-                            handleTrailerRequest(trending[0].id);
-                          }}>Watch Trailer</button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Set the selected movie first
+                              setSelectedMovie(trending[0]);
+                              // Then fetch the trailer
+                              handleTrailerRequest(trending[0].id);
+                              // Finally open the detail view
+                              setShowDetail(true);
+                            }}
+                            className="play-trailer-btn" // Use same class as your working button
+                          >
+                            ▶ Watch Trailer
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -758,7 +768,7 @@ function MovieExplorer() {
       </main>
 
       {/* Footer */}
-      <Footer onProviderSelect={handleProviderSelect} />
+      
 
       {/* Movie Detail Modal */}
       {showDetail && selectedMovie && (
